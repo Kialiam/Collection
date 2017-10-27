@@ -1,0 +1,379 @@
+
+import PySide.QtCore as qt
+import PySide.QtGui as qg
+import sys
+#from maya import OpenMayaUI as omui 
+#from shiboken import wrapInstance 
+
+#app = qg.QApplication(sys.argv)
+def hello():
+	print "Hi"
+	
+class Window(qg.QDialog):
+
+	def __init__(self):
+		qg.QDialog.__init__(self)
+		# faundation setting
+		self.setWindowTitle('Rigging Tools')
+		self.setGeometry(1100,100,300,500)
+		#self.setMinimumHeight(400)
+		self.setMinimumWidth(300)
+		self.setWindowFlags(qt.Qt.WindowStaysOnTopHint)
+		#mayaMainWindowPtr = omui.MQtUtil.mainWindow()
+		#mayaMainWindow = wrapInstance(long(mayaMainWindowPtr), qg.QWidget) 
+		#self.setParent(mayaMainWindow)
+		#self.setWindowFlags(qt.Qt.Window) 
+		 
+		def UIUpdate( a = "x" ):
+			if self.x_radio.isChecked():
+				a = "x"
+			elif self.y_radio.isChecked():
+				a = "y"
+			elif self.z_radio.isChecked():
+				a = "z"
+			c = self.PnN_check.isChecked()
+			#t = self.PnN_check.text()
+			if c:
+				self.PnN_check.setText(  "Positive to Negative [+%s to -%s]" %(a,a) )
+			else:
+				self.PnN_check.setText(  "Negative to Positive [-%s to +%s]" %(a,a) )
+				
+		#################------------------- WidgetDefine ------------------------#######################
+		def Label(name):
+			x = qg.QLabel(name)
+			x.setSizePolicy(qg.QSizePolicy.Minimum,qg.QSizePolicy.Maximum )
+			return x 
+			
+		def Button(name , function = "" , tips = "" , h = 0 , w = 0):
+			x = qg.QPushButton(name)
+
+			if function:
+				x.clicked.connect(function)
+			if tips:
+				x.setToolTip(tips)
+			if h:
+				x.setFixedHeight(h)
+			if w:
+				x.setFixedWidth(w)
+			return x 
+		
+		def Radio(name="" , mode = ""):
+			if name:
+				x = qg.QRadioButton(name)
+			else:
+				x = qg.QRadioButton()
+			if mode:	
+			    #x.hitButton(qg.QAbstractItemView.NoSelection)
+			    #x.setCheckable( False )
+			    x.setAutoExclusive( False )
+			return x 
+	
+		def Line( PlaceHolder ):
+			x = qg.QLineEdit()
+			x.setPlaceholderText(PlaceHolder)
+			return x 	
+		#################------------------- WidgetDefine ------------------------#######################
+					
+		# Action
+		self.Skin = qg.QAction("SkinWeight",self )
+		self.Skin.triggered.connect(lambda: self.Geometry.setCurrentIndex(0))
+		self.blends = qg.QAction("BlendShape",self )
+		self.blends.triggered.connect(lambda: self.Geometry.setCurrentIndex(1))
+		
+		# menuBar
+		menubar = qg.QMenuBar()
+		menubar.addAction(self.Skin)
+		menubar.addAction(self.blends)
+		
+		#################------------------- Widget ------------------------############################
+		# widget
+		## Button
+		self.AssignButton = Button ("Assign" , hello , h = 20 , w = 50 ,tips = "Select a object to Assign Target.")
+		self.Button2      = Button ( "Test2" )
+		self.MirrorButton = Button("Mirror Vertex SkinWeight",h=30)
+		self.CleanFile  = Button("Clean File",h=25)
+		self.CleanFile.setSizePolicy(qg.QSizePolicy.Minimum,qg.QSizePolicy.Minimum )
+		self.CleanAll  = Button("Clean All Files",h=25)
+		self.CleanAll.setSizePolicy(qg.QSizePolicy.Minimum,qg.QSizePolicy.Minimum )
+		self.Moveto  = Button("Move to...",h=25)
+		self.Moveto.setSizePolicy(qg.QSizePolicy.Minimum,qg.QSizePolicy.Minimum )
+		self.MoveAll  = Button("MoveAll to...",h=25)
+		self.MoveAll.setSizePolicy(qg.QSizePolicy.Minimum,qg.QSizePolicy.Minimum )
+		self.ImportButton  = Button("Import SkinWeight",h=30)
+		self.ImportButton.setSizePolicy(qg.QSizePolicy.Minimum,qg.QSizePolicy.Minimum )
+		self.ExportButton  = Button("Export SkinWeight",h=30)
+		self.ExportButton.setSizePolicy(qg.QSizePolicy.Minimum,qg.QSizePolicy.Minimum )
+		self.ToRightButton  = Button(">>")
+		self.ToLeftButton  = Button("<<")
+		self.LockButton  = Button("L")
+		self.UnLockButton  = Button("U")
+		self.HideButton  = Button("H")
+		self.UnLockAllButton  = Button("UnLockAll")
+		self.LockAllButton  = Button("LockAll")
+		
+		
+		
+		self.name_le = Line( "Mesh name Here.." )
+		self.name_le.setFocusPolicy(qt.Qt.NoFocus)
+		self.Address = Line( "Address here.." )
+		self.Address.setFocusPolicy(qt.Qt.NoFocus)
+		self.filename = Line( "File name here.." )
+		self.filename.setAlignment( qt.Qt.AlignTop )
+		self.SearchA = Line( "Search..." )
+		self.SearchB = Line( "Search..." )
+		
+		#self.filename.setText( "test" )
+		
+		self.List1 = qg.QListWidget()
+		#self.List1.setSelectionMode(qg.QAbstractItemView.ExtendedSelection)
+		#[self.List1.addItem( str(x) ) for x in range(0,20)]
+		#item = qg.QListWidgetItem(self.List1)
+		#item2 = qg.QListWidgetItem(self.List1)
+		#ch = qg.QRadioButton("dasdas")
+		[self.List1.setItemWidget( qg.QListWidgetItem(self.List1) , Radio("%s" %x , "yes") ) for x in range(0,20)  ]
+		self.List1.setItemWidget( qg.QListWidgetItem(self.List1) , Radio("gfdgdf","yes") )
+		
+		
+		## Label
+		self.Firstlabel = Label("Select object geometry or Vertex :")
+		
+		## Radio
+		self.x_radio = Radio("x")  
+		self.x_radio.setChecked(True)
+		self.x_radio.clicked.connect( UIUpdate )
+		self.y_radio = Radio("y")
+		self.y_radio.clicked.connect( UIUpdate )
+		self.z_radio = Radio("z") 
+		self.z_radio.clicked.connect( UIUpdate )
+		self.PnN_check = qg.QCheckBox("Positive to Negative [+x to -x]") #"Check if Positive to Negative"
+		self.PnN_check.setChecked(True)
+		self.PnN_check.clicked.connect( UIUpdate )
+		
+		#################------------------- Widget ------------------------############################
+		
+		
+		## page Manage
+		# page1
+		self.page1 = qg.QFrame()
+		self.page1.setLayout( qg.QVBoxLayout() )
+
+		self.RadioGrid = qg.QFrame()
+		self.RadioGrid.setLayout(qg.QGridLayout())
+		self.RadioGrid.setSizePolicy(qg.QSizePolicy.Maximum,qg.QSizePolicy.Maximum )
+		self.RadioGrid.setContentsMargins(0,0,0,0)
+		self.RadioGrid.layout().setContentsMargins(0,0,0,0)
+		self.RadioGrid.layout().addWidget(self.x_radio , 0 ,1)
+		self.RadioGrid.layout().addWidget(self.y_radio , 0 ,2)
+		self.RadioGrid.layout().addWidget(self.z_radio , 0 ,3)
+		
+		self.p1row1 = qg.QFrame()
+		self.p1row1.setLayout(qg.QGridLayout())
+		self.p1row1.setLineWidth(1)
+		
+		#self.p1row1.setFrameStyle( qg.QFrame.StyledPanel | qg.QFrame.Raised )
+		self.p1row1.setSizePolicy(qg.QSizePolicy.Maximum,qg.QSizePolicy.Maximum )
+		self.p1row1.setContentsMargins(10,10,0,0)
+		self.p1row1.layout().setContentsMargins(5,5,5,5)
+		self.p1row1.layout().setSpacing(10)
+		self.p1row1.layout().setVerticalSpacing(3)
+		self.p1row1.layout().addWidget( Label("MirrorCross") , 0,0 )
+		self.p1row1.layout().addWidget( Label(":") , 0,1 )
+		self.p1row1.layout().addWidget( Label("Direction") , 1,0 )
+		self.p1row1.layout().addWidget( Label(":") , 1,1 )
+		self.p1row1.layout().addWidget( self.PnN_check , 1,2)
+		self.p1row1.layout().addWidget( self.RadioGrid , 0,2)
+		
+		
+		self.p1row3 = qg.QHBoxLayout()
+		self.p1row3.layout().addWidget(self.Firstlabel)
+		self.p1row3.layout().setContentsMargins(10,10,5,2)
+		
+		self.p1row4 = qg.QHBoxLayout()
+		self.p1row4.layout().addWidget(self.name_le)
+		self.p1row4.layout().addWidget( self.AssignButton ) 
+		self.p1row4.layout().setContentsMargins(10,0,10,0) 
+
+		self.p1row5 = qg.QFrame()
+		self.p1row5.setFrameStyle( qg.QFrame.HLine | qg.QFrame.Sunken )
+		self.p1row5.setSizePolicy(qg.QSizePolicy.Minimum,qg.QSizePolicy.Maximum )
+		self.p1row5.setContentsMargins(0,0,0,0)
+		self.p1row5.setFixedHeight(3)
+		
+		self.p1row6 = qg.QHBoxLayout()
+		self.p1row6.setContentsMargins(5,2,5,2)
+		self.p1row6.layout().addWidget( self.MirrorButton )
+		
+		self.p1row6L = qg.QFrame()
+		self.p1row6L.setFrameStyle( qg.QFrame.HLine | qg.QFrame.Sunken )
+		self.p1row6L.setSizePolicy(qg.QSizePolicy.Minimum,qg.QSizePolicy.Maximum )
+		self.p1row6L.setContentsMargins(0,0,0,0)
+		self.p1row6L.setFixedHeight(3)
+		
+		self.p1row7a = qg.QFrame()
+		self.p1row7a.setLayout(qg.QVBoxLayout())
+		self.p1row7a.setContentsMargins(0,0,0,0)
+		self.p1row7a.setFixedWidth(150)
+		#self.p1row7a.setMinimumHeight(10)
+		self.p1row7a.layout().setAlignment( qt.Qt.AlignLeft ) 
+		#self.p1row7a.layout().setFixedWidth(150)
+		self.p1row7a.setSizePolicy(qg.QSizePolicy.Fixed,qg.QSizePolicy.Minimum )
+		self.p1row7a.layout().setContentsMargins(0,0,0,0)
+		self.p1row7a.layout().addWidget( self.Address )
+		self.p1row7a.layout().addWidget( self.List1 )
+		self.p1row7a.layout().addWidget( self.ImportButton )
+		
+		self.p1row7bb = qg.QFrame()
+		qg.QVBoxLayout(self.p1row7bb)
+	
+		self.p1row7bb.setContentsMargins(0,0,0,0)
+		self.p1row7bb.setSizePolicy(qg.QSizePolicy.Minimum,qg.QSizePolicy.Minimum )
+		self.p1row7bb.layout().setContentsMargins(0,0,0,0)
+		self.p1row7bb.layout().setAlignment( qt.Qt.AlignBottom )  
+		self.p1row7bb.layout().addWidget( self.CleanFile )
+		self.p1row7bb.layout().addWidget( self.CleanAll )
+		self.p1row7bb.layout().addWidget( self.Moveto )
+		self.p1row7bb.layout().addWidget( self.MoveAll )
+		#self.p1row7b.layout().addWidget( self.ImportButton )
+		self.p1row7bb.layout().addWidget( self.ExportButton )
+		
+		self.p1row7b = qg.QVBoxLayout()
+		#self.p1row7b.setLayout(qg.QVBoxLayout())
+		self.p1row7b.setContentsMargins(0,0,0,0)
+		#self.p1row7b.setSpacing(20)
+		#self.p1row7b.setMinimumWidth(150)
+		#self.p1row7b.setSizePolicy(qg.QSizePolicy.Maximum,qg.QSizePolicy.Maximum )
+		self.p1row7b.layout().setAlignment( qt.Qt.AlignLeft | qt.Qt.AlignTop )  
+		self.p1row7b.layout().setContentsMargins(0,0,10,0)
+		#self.p1row7b.layout().addWidget( qg.QFrame() )
+		self.p1row7b.layout().addWidget( self.filename )
+		self.p1row7b.layout().addWidget( self.p1row7bb )
+
+		
+		
+		self.p1row7 = qg.QFrame()
+		self.p1row7.setContentsMargins(10,1,0,2)
+		self.p1row7.setMinimumHeight(184)
+		self.p1row7.setMaximumHeight(258)
+		self.p1row7.setLayout(qg.QGridLayout())
+		self.p1row7.setSizePolicy(qg.QSizePolicy.Minimum,qg.QSizePolicy.Minimum )
+		self.p1row7.layout().setContentsMargins(0,0,0,0)
+		self.p1row7.layout().addWidget( self.p1row7a,0,0 )	
+		self.p1row7.layout().addLayout( self.p1row7b,0,1 )	
+		
+		
+		self.p1row7L = qg.QFrame()
+		self.p1row7L.setFrameStyle( qg.QFrame.HLine | qg.QFrame.Sunken )
+		self.p1row7L.setSizePolicy(qg.QSizePolicy.Minimum,qg.QSizePolicy.Maximum )
+		self.p1row7L.setContentsMargins(0,0,0,0)
+		self.p1row7L.setFixedHeight(3)
+		
+		self.p1row8a = qg.QVBoxLayout()
+		self.p1row8a.setContentsMargins(0,0,0,0)
+		self.p1row8a.setSpacing(5)
+		self.p1row8a.layout().addWidget( self.SearchA )	
+		self.p1row8a.layout().addWidget( qg.QListWidget() )	
+		#self.p1row8a.layout().addWidget( Button("U")  )	
+		
+		self.p1row8c = qg.QVBoxLayout()
+		self.p1row8c.setContentsMargins(0,0,0,0)
+		self.p1row8c.setSpacing(5)
+		self.p1row8c.layout().addWidget( self.SearchB )	
+		self.p1row8c.layout().addWidget( qg.QListWidget() )	
+		#self.p1row8c.layout().addWidget( Button("U")  )	
+		
+		self.p1row8b = qg.QFrame()
+		self.p1row8b.setContentsMargins(0,0,0,0)
+		self.p1row8b.setLayout(qg.QVBoxLayout())
+		self.p1row8b.setMaximumWidth(20)
+		self.p1row8b.setMaximumHeight(200)
+		self.p1row8b.layout().setSpacing(5)
+		self.p1row8b.layout().setContentsMargins(0,26,0,0)	
+		self.p1row8b.layout().addWidget( self.ToRightButton )
+		self.p1row8b.layout().addWidget( self.ToLeftButton )
+		self.p1row8b.layout().addWidget( self.LockButton  )
+		self.p1row8b.layout().addWidget( self.UnLockButton )
+		self.p1row8b.layout().addWidget( self.HideButton )
+		
+		self.p1row8 = qg.QFrame()
+		self.p1row8.setContentsMargins(10,2,10,2)
+		self.p1row8.setLayout(qg.QHBoxLayout())
+		self.p1row8.layout().setSpacing(5)
+		#self.p1row8.setSizePolicy(qg.QSizePolicy.Minimum,qg.QSizePolicy.Minimum )
+		self.p1row8.layout().setContentsMargins(0,0,0,0)
+		self.p1row8.layout().addLayout( self.p1row8a )	
+		self.p1row8.layout().addWidget( self.p1row8b )	
+		self.p1row8.layout().addLayout( self.p1row8c )	
+		
+		self.p1row9B = qg.QHBoxLayout()
+		self.p1row9B.setContentsMargins(10,2,10,2)
+		self.p1row9B.layout().setSpacing(4)
+		self.p1row9B.layout().addWidget( self.UnLockAllButton )	
+		self.p1row9B.layout().addWidget( self.LockAllButton )	
+		
+		self.p1row9 = qg.QFrame()
+		#self.p1row6.setFrameStyle( qg.QFrame.Panel | qg.QFrame.Raised )#
+		self.p1row9.setContentsMargins(0,0,0,0)
+		self.p1row9.setMinimumHeight(2)
+		self.p1row9.setSizePolicy(qg.QSizePolicy.Minimum,qg.QSizePolicy.Minimum )
+		self.p1row9.setLayout(qg.QGridLayout())
+
+
+		## page Manage
+		self.page1.layout().addWidget( self.p1row1 )
+		#self.page1.layout().addWidget( self.p1row2 )
+		self.page1.layout().addLayout( self.p1row3 )
+		self.page1.layout().addLayout( self.p1row4 )
+		self.page1.layout().addWidget( self.p1row5 )
+		self.page1.layout().addLayout( self.p1row6 )
+		self.page1.layout().addWidget( self.p1row6L )
+		self.page1.layout().addWidget( self.p1row7 )
+		self.page1.layout().addWidget( self.p1row7L )
+		self.page1.layout().addWidget( self.p1row8 )
+		self.page1.layout().addLayout( self.p1row9B )
+		#self.page1.layout().addWidget( self.p1row9 )
+		self.page1.layout().setSpacing(2)
+		self.page1.layout().setContentsMargins(0,0,0,0)
+  
+		
+		# layout
+		layout     = qg.QHBoxLayout(self)
+		self.Geometry = qg.QStackedLayout()
+		self.Geometry.addWidget( self.page1 )
+		self.Geometry.addWidget( self.Button2 )
+		self.Geometry.setSpacing(0)
+		
+		self.frame = qg.QFrame()
+		self.frame.setFrameStyle( qg.QFrame.Panel | qg.QFrame.Sunken )
+		self.frame.setLineWidth(1)
+		self.frame.setContentsMargins(5,1,5,5)
+		self.frame.setLayout( self.Geometry )
+		self.layout().setMenuBar( menubar )
+		
+		self.layout().addWidget( self.frame )
+		self.layout().setContentsMargins(5,1,5,5)
+		
+
+
+		
+
+
+		
+		
+				
+w = Window()
+w.show()
+#print w.x_radio.isChecked()
+#print w.PnN_check.isChecked()
+#w.Firstlabel.setText("kdjaskjd")
+#w.x_radio.setChecked(True)
+
+
+print [x.text() for x in w.List1.selectedItems()]
+#print w.List1.itemWidget( w.List1.item(20)).setText("20")
+#w.List1.itemWidget( w.List1.item(20)).setAutoExclusive(False)
+#w.List1.itemWidget( w.List1.item(20)).setCheckable(True)
+#w.List1.itemWidget( w.List1.item(20)).setChecked(False)
+#w.List1.itemWidget( w.List1.item(19)).setAutoExclusive(False)
+#w.List1.itemWidget( w.List1.item(19)).setCheckable(True)
+#w.List1.itemWidget( w.List1.item(19)).setChecked(True)
+#print w.List1.itemWidget( w.List1.items( ) )
