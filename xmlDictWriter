@@ -1,0 +1,138 @@
+import os
+import xml.etree.ElementTree as ET
+
+
+
+
+################################################################################################
+############### --------------------------  XML Writer  ----------------------- ############
+################################################################################################
+
+def prettyPrintXML(elem, level = 0):
+
+	i = '\n' + level * '    '
+	if len(elem):
+
+		if not elem.text or not elem.text.strip():
+			elem.text = i + '   '
+		if not elem.tail or not elem.tail.strip():
+			elem.tail = i
+		for elem in elem:
+			prettyPrintXML(elem, level + 1)
+		if not elem.tail or not elem.tail.strip():
+			elem.tail = i
+
+	else:
+
+		if level and ( not elem.tail or not elem.tail.strip() ):
+			elem.tail = i
+
+
+class RevealAccesss(object):
+
+	def __init__( self, initval=None, name='var' ):
+		self.val = initval
+		self.name = name
+
+	def __get__(self, objs,val):
+		return self.val
+
+	def __set__(self, objs , val):
+		self.val = val
+		print "name Changed !!"
+		objs.address = objs.folder+"\\"+objs.filename+".xml"
+
+
+
+class xmlDict(dict):
+
+	import os
+
+	filename = RevealAccesss("newFile")
+	folder = RevealAccesss("folder")
+	
+	def __getitem__(self, item):
+		try:
+			return dict.__getitem__(self, item)
+		except KeyError:
+			value = self[item] = type(self)()
+			return value
+			
+	def write( self , note = "" , lvl = 0 , lastlvl = 0 ):
+		if lvl == 0:
+			self.Level_00 = ET.Element('root')
+		print lvl
+		exec "self.keylist = self%s.keys()" %note
+		lvl += 1
+		for key in self.keylist:
+			exec "self.keytype = type(self%s[key])" %note
+
+			if self.keytype == type(1) or self.keytype == type(""):
+
+				exec 'self.Level_%.2d = ET.SubElement( self.Level_%.2d , "Item"  ) ' %(lvl,lastlvl)
+				exec "self.Level_%.2d.set( '%s' , str(self%s['%s']) )" %(lvl,key,note,key)
+				
+			else:
+				
+				exec 'self.Level_%.2d = ET.SubElement( self.Level_%.2d , "Level_%.2d"  ) ' %(lvl,lastlvl,lvl)
+				exec "self.Level_%.2d.set( 'name' , '%s' )" %(lvl,key)
+				self.write(  note + "['%s']" %key , lvl , lvl  )
+			
+		prettyPrintXML( self.Level_00 ) 
+		Tree = ET.ElementTree( self.Level_00 ) 
+		Tree.write( self.address , encoding = 'utf-8' ) 
+		
+	def read( self , SubLayer = "" , noteR = ""  ,lvl = 1):
+		
+
+		if os.path.isfile( self.address):
+			if lvl == 1:
+
+				self.fileDict = xmlDict()
+				Tree = ET.parse( self.address )
+				SubLayer = Tree.getroot( )
+		
+			for x in SubLayer.getchildren():
+				if x.tag != "Item":
+					name = x.attrib.get("name")
+					exec "self.fileDict%s[name]" %noteR
+					
+					self.read(  x , noteR+"['%s']"%name , lvl +1 )
+					
+				else:
+					Item = x.attrib
+					exec "self.fileDict%s[Item.keys()[0]] = Item.values()[0]" %noteR
+			
+			return self.fileDict
+			
+################################################################################################
+
+class xmL(dict):
+
+
+	def __new__(self,filename):
+		self = xmlDict()
+		
+		self.folder = "D:\Kialiam\Work\Personal\Script\ScriptBase\XML_OutPut"
+		self.filename = filename + ".xml"
+		self.address = self.folder + "\\" + self.filename
+		#self.Book     = self
+		#self.note     = ""
+		
+		
+		if os.path.isfile( self.address):
+			self = self.read(self.address)
+			self.folder = "D:\Kialiam\Work\Personal\Script\ScriptBase\XML_OutPut"
+			self.filename = filename + ".xml"
+			self.address = self.folder + "\\" + self.filename
+			#self.Book     = self
+			#self.note     = ""
+		
+		return self
+	
+		
+	
+
+	
+		
+################################################################################################		
